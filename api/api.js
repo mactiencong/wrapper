@@ -1,12 +1,15 @@
 var wrapper_db = require("../model/wrapperdb.js");
 var crypto = require('crypto');
 var CONFIG = require("../config.json");
+var NodeCache = require("node-cache");
+var caching = null;
 // config
 var S_TOKEN = CONFIG.api.secure_token;
 // end
 var API= {
     init: (callback)=>{
         wrapper_db.connect(callback);
+        caching = new NodeCache();
     },
     login: (req, res) => {
         var username = req.body.username || null;
@@ -15,12 +18,31 @@ var API= {
             return err?API.api_response(res, false, err):API.api_response(res, true, null, publisher);
         })
     },
+    caching_get_key: (req_data)=>{
+        return crypto.createHash('sha256').update("wrapper"+req_data.token+req_data.package_name+req_data.udid).digest("hex");
+    },
+    caching_get: (req_data, callback)=> {
+        console.log("get cache");
+        caching.get(API.caching_get_key(req_data), (err, value)=>{
+            return err || value===undefined? callback(false):callback(value);
+        })
+    },
+    caching_set: (req_data, data, ttl, callback)=> {
+        console.log("set cache");
+        caching.set(API.caching_get_key(req_data), data, ttl, (err, success)=>{
+            return !err && success? callback(true):callback(false);
+        })
+    },
     action: (req, res) => {
-        if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
-        var action_data = API.normal_action_data(req);
-        console.log(action_data);
-        API.get_publisher_by_token(action_data.token)
-        .then(publisher=>{API.log_history(res, publisher, action_data)}, err=>{ API.api_response(res, false, err, null)})
+        API.caching_get(req.body, (value)=>{
+            if(value) return API.api_response(res, false, "REQUEST_REJECTED", null);
+            if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
+            var action_data = API.normal_action_data(req);
+            console.log(action_data);
+            API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
+            API.get_publisher_by_token(action_data.token)
+            .then(publisher=>{return API.log_history(res, publisher, action_data)}, err=>{ return API.api_response(res, false, err, null)})
+        });
     },
     log_history: (res, publisher, action_data)=> {
         action_data.publisher = publisher;
@@ -97,6 +119,7 @@ var API= {
         return server_signature===req_signature;
     },
     api_response: (res, is_success, error=null, data=null) => {
+        console.log("API response");
         return res.send({"status":(is_success?1:0), "error":(error?error:""), "data":(data?data:null)});
     },
     get_client_info: (req)=>{

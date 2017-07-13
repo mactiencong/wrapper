@@ -87,7 +87,7 @@ function get_publisher_by_token(token) {
         mongodb.collection("publisher").findOne({"token":token}, (err, publisher)=> {
             if(err) reject(err);
             if(publisher) resolve(publisher.publisher);
-            else reject("Not found");
+            else reject("PUBLISHER_INVALID");
         });
     })
 }

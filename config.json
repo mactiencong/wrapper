@@ -11,5 +11,8 @@
             "limit": 1
         }
     },
-    "revenue_per_open_app": 0.0001
+    "revenue_per_open_app": 0.0001,
+    "caching":{
+        "action_ttl": 60
+    }
 }
