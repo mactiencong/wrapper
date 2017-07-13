@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>Login</title>
+        <link href="/css/login.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="head"><a href="/landing">BACK HOME</a><p>PUBLISHER LOGIN</p></div>
+        <div class="main">
+            <form class="login-form" action="login" method="POST">
+                <div class="msg isa_info"><%=parse_msg(code)%></div>
+                <p class="label">Username</p><input class="username" type="text" name="username" placeholder="Username" />
+                <p class="label">Password</p><input class="password" type="password" name="password" placeholder="Password" />
+                <input class="submit" type="Submit" name="Submit" value="Login"/>
+            </form>
+        </div>
+    </body>
+</html>

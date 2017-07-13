@@ -1,0 +1,1 @@
+{"main": "test.js", "out": "test.wasm", "target":"wasm", "preset":"speed"}

@@ -1,0 +1,37 @@
+<div class="col-lg-12">
+    <h2>Result</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Open app</th>
+                    <th>Revenue ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <%
+                if(report && report.length>0) { report.forEach(function(data) {
+                %>
+                <tr>
+                    <th><%= data._id.day+"/"+data._id.month+"/"+data._id.year %></th>
+                    <th><%= data.open_app %></th>
+                    <th><%= data.revenue.toFixed(4) %></th>
+                </tr>
+                <%
+                }) } else { 
+                %>
+                <tr>
+                    <th colspan="3">No data</th>
+                </tr>
+                <%
+                }
+                %>
+            </tbody>
+        </table>
+        <ul class="pagination">
+            <li class='<%= paging.previous?"":"disabled" %>'><a onclick="go_to_paging(this)" page='<%= paging.previous %>' href="#"><< Previous</a></li>
+            <li class='<%= paging.next?"":"disabled" %>'><a onclick="go_to_paging(this)" href="#" page='<%= paging.next %>' >Next >></a></li>
+        </ul>
+    </div>
+</div>

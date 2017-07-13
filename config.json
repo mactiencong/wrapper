@@ -1,0 +1,15 @@
+{
+    "db":{
+        "mongo_db_url": "mongodb://127.0.0.1:27017/test"
+    },
+    "server":{
+        "port": 3000
+    },
+    "api": {
+        "secure_token": "IOS_WRAPPER",
+        "report": {
+            "limit": 1
+        }
+    },
+    "revenue_per_open_app": 0.0001
+}
