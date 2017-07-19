@@ -3,7 +3,7 @@ var mongoClient = require("mongodb").MongoClient;
 var MONGO_DB_URL = CONFIG.db.mongo_db_url;
 var mongodb = null;
 function connect(callback){
-    mongoClient.connect(MONGO_DB_URL, (err, db)=>{
+    if(!mongodb) mongoClient.connect(MONGO_DB_URL, (err, db)=>{
         if(err) return console.log("MongoDB error: " + err);
         mongodb = db;
         console.log("MongoDB: connect successfully");
