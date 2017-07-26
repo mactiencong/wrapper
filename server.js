@@ -2,6 +2,7 @@ var express = require("express");
 var session = require("express-session");
 var app = express();
 var ejs = require("ejs");
+var RateLimit = require('express-rate-limit');
 var bodyParser = require("body-parser");
 var api = require("./api/api.js");
 var CONFIG = require("./config.json");
@@ -27,6 +28,11 @@ var SERVER_PORT = CONFIG.server.port;
 //     })
 // }
 // else {
+    var apiLimiter = new RateLimit({
+        windowMs: 15*60*1000, // 15 minutes 
+        max: 100,
+        delayMs: 0 // disabled
+    });
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.set("view engine", "ejs");
@@ -42,7 +48,7 @@ var SERVER_PORT = CONFIG.server.port;
     app.post("/login",(req, res)=>{
         api.login(req, res);
     })
-    app.post("/action",(req, res)=>{
+    app.post("/action", apiLimiter, (req, res)=>{
         api.action(req, res);
     })
     app.post("/register",(req, res)=>{
