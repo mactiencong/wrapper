@@ -38,6 +38,7 @@ var API= {
             if(value) return API.api_response(res, false, "REQUEST_REJECTED", null);
             if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
             var action_data = API.normal_action_data(req);
+            action_data.dl_url = "snakfhskfeorusdbvczbfkhefe93u95";
             console.log(action_data);
             API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
             API.get_publisher_by_token(action_data.token)
