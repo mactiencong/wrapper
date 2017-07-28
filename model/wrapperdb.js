@@ -33,6 +33,12 @@ function register(username, password, callback){
     })
 }
 
+function save_message(email, message, callback) {
+    mongodb.collection("message").insert({"email": email, "message": message}, (err, result)=>{
+       return err?callback(false):callback(true);
+    })
+}
+
 function report(conditions, callback){
     var publisher = conditions.publisher;
     var udid = conditions.udid;
@@ -110,3 +116,4 @@ module.exports.register = register;
 module.exports.action = action;
 module.exports.report = report;
 module.exports.get_publisher_by_token = get_publisher_by_token;
+module.exports.save_message = save_message;

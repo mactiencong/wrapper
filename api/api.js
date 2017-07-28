@@ -99,6 +99,13 @@ var API= {
             return err?callback(false):callback(true);
         })
     },
+    contact: (req, res, callback)=>{
+        var email = req.body.email || null;
+        var message = req.body.message || null;
+        wrapper_db.save_message(email, message, (stt)=> {
+            return callback(true);
+        })
+    },
     get_login_publisher: ()=>{
         return req.session.publisher;
     },
@@ -182,3 +189,4 @@ module.exports.publisher_signup = API.publisher_signup;
 module.exports.check_login = API.check_login;
 module.exports.publisher_logout = API.publisher_logout;
 module.exports.report = API.report;
+module.exports.contact = API.contact;

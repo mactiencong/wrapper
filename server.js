@@ -96,6 +96,11 @@ var SERVER_PORT = CONFIG.server.port;
     app.get("/landing", (req, res)=>{
         res.sendFile(__dirname + '/landing/index.html');
     })
+    app.post("/landing/contact", (req, res)=>{
+        api.contact(req, res, (stt)=>{
+            res.redirect("/landing");
+        });
+    })
     app.post("/publisher/signup", (req, res)=>{
         api.publisher_signup(req, res, (status)=>{
             var code = status?"1002":"1003"; // 1002 - success, 1003 - fail
