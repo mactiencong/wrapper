@@ -8,11 +8,11 @@
     "api": {
         "secure_token": "IOS_WRAPPER",
         "report": {
-            "limit": 1
+            "limit": 15
         }
     },
-    "revenue_per_open_app": 0.0001,
+    "revenue_per_open_app": 0.0005,
     "caching":{
-        "action_ttl": 60
+        "action_ttl": 86400
     }
 }

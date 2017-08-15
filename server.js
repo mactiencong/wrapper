@@ -40,16 +40,27 @@ var SERVER_PORT = CONFIG.server.port;
     app.use(express.static(__dirname + '/landing'));
     app.set('views',__dirname + "/admin");
     app.use(session({
-    secret: 'wrapper',
-    resave: false,
-    saveUninitialized: true,
+        secret: 'wrapper',
+        resave: false,
+        saveUninitialized: true,
     //   cookie: { secure: true }
     }))
     app.post("/login",(req, res)=>{
         api.login(req, res);
     })
-    app.post("/action", apiLimiter, (req, res)=>{
+    app.post("/action", (req, res)=>{
         api.action(req, res);
+    })
+    app.get("/publisher/withdrawal", (req, res)=>{
+        api.check_login(req, res, (publisher)=>{
+            if(!publisher) return res.redirect("/publisher/login");
+            api.getCurrentBalance(req, (current_balancing)=>{
+                return res.render("withdrawal", {"publisher": publisher, "current_balancing": current_balancing});
+            })
+        });
+    })
+    app.post("/publisher/withdrawal/", (req, res)=>{
+        api.updateWithdrawalEmail(req, res);
     })
     app.post("/register",(req, res)=>{
         api.register(req, res);

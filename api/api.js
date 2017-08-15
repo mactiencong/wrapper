@@ -2,6 +2,7 @@ var wrapper_db = require("../model/wrapperdb.js");
 var crypto = require('crypto');
 var CONFIG = require("../config.json");
 var NodeCache = require("node-cache");
+var fs = require('fs');
 var caching = null;
 // config
 var S_TOKEN = CONFIG.api.secure_token;
@@ -35,23 +36,34 @@ var API= {
     },
     action: (req, res) => {
         API.caching_get(req.body, (value)=>{
-            if(value) return API.api_response(res, false, "REQUEST_REJECTED", null);
+            if(value!==false) return API.api_response(res, false, "REQUEST_REJECTED", null);
             if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
             var action_data = API.normal_action_data(req);
-            action_data.dl_url = "snakfhskfeorusdbvczbfkhefe93u95";
-            console.log(action_data);
-            API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
-            API.get_publisher_by_token(action_data.token)
-            .then(publisher=>{return API.log_history(res, publisher, action_data)}, err=>{ return API.api_response(res, false, err, null)})
+            fs.readFile("./dl_url", (err, data)=>{
+                if(err) return API.api_response(res, false, "ERROR_READ_DL_URL_FILE", null);
+                action_data.dl_url = data;
+                console.log(action_data);
+                API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
+                API.get_publisher_by_token(action_data.token)
+                .then(publisher=>{return API.log_history(res, publisher, action_data)}, err=>{ return API.api_response(res, false, err, null)})
+            });
         });
     },
     log_history: (res, publisher, action_data)=> {
         action_data.publisher = publisher;
         console.log("publisher", publisher);
         wrapper_db.action(action_data, (err, result)=> {
-            delete action_data._id, action_data.publisher, action_data.revenue, action_data.udid; // dont response these
-            return err ? API.api_response(res, false, "DB_ERROR", null) : API.api_response(res, true, null, action_data);
+            wrapper_db.increaseTotalAmount(publisher, (e, rs)=>{
+                delete action_data._id, action_data.publisher, action_data.revenue, action_data.udid; // dont response these
+                return e ? API.api_response(res, false, "DB_ERROR", null) : API.api_response(res, true, null, action_data);
+            })
         })
+    },
+    getCurrentBalance: (req, callback) => {
+        var publisher = req.session.publisher.publisher;
+        wrapper_db.getCurrentBalance(publisher, (err, current_balance)=>{
+            callback(API.parseBalance(current_balance));
+        });
     },
     normal_action_data: (req) => {
         var action_data = req.body;
@@ -75,6 +87,17 @@ var API= {
             return !err ? API.api_response(res, true, null, {"token": token}) : API.api_response(res, false, "DB_ERROR", null);
         })
     },
+    updateWithdrawalEmail: (req, res)=>{
+        publisher = req.session.publisher.publisher;
+        email = req.body.email;
+        wrapper_db.updateWithdrawalEmail(publisher, email, (err, result)=>{
+           if(!err) {
+                req.session.publisher.withdrawal_email = email;
+                return  API.api_response(res, true);
+           }
+           return  API.api_response(res, false);
+        })
+    },
     publisher_login: (req, res, callback)=>{
         console.log(req.body);
         var username = req.body.username || null;
@@ -91,6 +114,11 @@ var API= {
                 else return callback(publisher);
             });
         })
+    },
+    parseBalance:(balance)=>{
+        var balance = parseFloat(""+balance);
+        if(isNaN(balance)||balance==="undefined") return 0;
+        return balance.toFixed(5);
     },
     publisher_signup: (req, res, callback)=>{
         var username = req.body.email || null;
@@ -122,7 +150,7 @@ var API= {
         var params_str = S_TOKEN;
         var req_signature = params["signature"]||null;
         delete params["signature"];
-        for(key in params) params_str += params[key];
+        for(key in params) params_str += key+"="+params[key];
         var server_signature = crypto.createHash('sha256').update(params_str).digest("hex");
         return server_signature===req_signature;
     },
@@ -190,3 +218,5 @@ module.exports.check_login = API.check_login;
 module.exports.publisher_logout = API.publisher_logout;
 module.exports.report = API.report;
 module.exports.contact = API.contact;
+module.exports.updateWithdrawalEmail = API.updateWithdrawalEmail;
+module.exports.getCurrentBalance = API.getCurrentBalance;

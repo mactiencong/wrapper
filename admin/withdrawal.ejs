@@ -63,7 +63,7 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li class="active">
-                        <a href="#"><i class="fa fa-fw fa-table"></i> Report</a>
+                        <a href="#"><i class="fa fa-fw fa-table"></i> Payment</a>
                     </li>
                 </ul>
             </div>
@@ -76,47 +76,22 @@
                 <!-- Page Heading -->
                 <div class="row">
                     <div class="col-lg-12">
-                        <h1 class="page-header">
-                            Reports
-                        </h1>
+                        <h1 class="page-header">Payment</h1>
                         <ol class="breadcrumb">
                             <li class="active">
-                                <i class="fa fa-table"></i> Report
+                                <i class="fa fa-money"></i> Payment
                             </li>
                         </ol>
                     </div>
                 </div>
                 <!-- /.row -->
+                
                 <div class="row">
-                    <form action="index" method="GET">
-                        <div class="col-lg-6">
-                            <div class="form-group">
-                                Package name<input class="form-control" value="<%= filter.package_name %>" type="text" name="package_name" />
-                                UDID<input class="form-control" value="<%= filter.udid %>" type="text" name="udid" />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="form-group">
-                                From date
-                                <div class='input-group date' id='from_date'>
-                                    <input type='text' onkeydown="return false" value="<%= filter.from_date %>" name="from_date" class="form-control" />
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-calendar"></span>
-                                    </span>
-                                </div>
-                                To date
-                                <div class='input-group date' id='to_date'>
-                                    <input type='text' onkeydown="return false" value="<%= filter.to_date %>" name="to_date" class="form-control" />
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-calendar"></span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-12"><input class="btn btn-default" type="submit" value="Filter" /></div>
-                    </form>
+                    <div class="col-lg-12">
+                            <% include withdrawal.inc.ejs %>
+                    </div>
+                </div>
                 <!-- /.row -->
-                <% include report.inc.ejs %>
                 
             </div>
             <!-- /.container-fluid -->
@@ -153,39 +128,6 @@
             </div>
         </div>
     </div>
-
-    <script src="/js/moment.min.js"></script>    
-    <script src="/js/bootstrap-datetimepicker.min.js"></script>
-    <script>
-        $(function () {
-            $('#from_date').datetimepicker({
-                format: "YYYY-MM-DD"
-            });
-            $('#to_date').datetimepicker({
-                format: "YYYY-MM-DD"
-            });
-        });
-        function go_to_paging(btn){
-            if(isInt(btn.getAttribute("page")))
-                return window.location.href = updateQueryStringParameter(window.location.href, "page", btn.getAttribute("page"));
-        }
-        function isInt(value) {
-            return !isNaN(value) && 
-                parseInt(Number(value)) == value && 
-                !isNaN(parseInt(value, 10));
-        }
-        function updateQueryStringParameter(uri, key, value) {
-            var re = new RegExp("([?&])" + key + "=.*?(&|#|$)", "i");
-            if (uri.match(re)) return uri.replace(re, '$1' + key + "=" + value + '$2');
-            var hash =  '';
-            if( uri.indexOf('#') !== -1 ){
-                hash = uri.replace(/.*#/, '#');
-                uri = uri.replace(/#.*/, '');
-            }
-            var separator = uri.indexOf('?') !== -1 ? "&" : "?";    
-            return uri + separator + key + "=" + value + hash;
-        }
-    </script>
     <!-- Bootstrap Core JavaScript -->
     <script src="/js/bootstrap.min.js"></script>
 

@@ -1,0 +1,28 @@
+<div>
+    <h3>Your balance: <%= "$"+current_balancing  %></h3><br/>
+    <strong>Note: You will only be able to withdraw when the balance is greater than $20.</strong><br/><br/>
+    <p>The first, you must provide us your paypal email for withdrawing</p>
+    <form onsubmit="event.preventDefault(); saveWithdrawalEmail();">
+        <div class="form-group">
+            <label for="withdrawalEmail">Paypal email for withdrawing</label>
+            <input  type="email" class="form-control" style="width: 50%;" value="<%= publisher.withdrawal_email %>" name="email" id="withdrawalEmail" placeholder="Email">
+        </div>
+        <button type="submit" id="btnSaveWithdrawalEmail" name="save" class="btn btn-default">Save</button>
+        <button disabled="disabled" name="withdrawal" type="button" class="btn btn-default">Withdraw</button>        
+    </form>
+</div>
+<script>
+    function saveWithdrawalEmail(){
+        if(document.getElementById("withdrawalEmail").checkValidity()) {
+            var email = $("#withdrawalEmail").val();
+            $.post("./withdrawal/", {email: email})
+            .done((data)=>{
+                if(data.status) alert("Saved successfully!");
+                else alert("Save fail, please try again with different email!");
+            })
+            .fail(()=>{
+                alert("Error, please try again!");
+            })
+        }
+    }
+</script>

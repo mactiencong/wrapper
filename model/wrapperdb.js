@@ -16,11 +16,37 @@ function login(username, password, callback){
         callback(err, publisher);
     });
 }
+function getCurrentBalance(publisher, callback){
+    mongodb.collection("publisher").findOne({"publisher":publisher}, {"password":0, "_id": 0}, (err, publisher)=> {
+        if(err) console.log(err);
+        callback(err, publisher.current_balance);
+    });
+}
 function action(history_data, callback) {
     mongodb.collection("history").insert(history_data, (err, result)=>{
         if(err) console.log(err);
         callback(err, result);
     });
+}
+function increaseTotalAmount(publisher, callback) {
+    mongodb.collection("publisher").update(
+        {publisher: publisher},
+        {$inc: {current_balance: CONFIG.revenue_per_open_app}},
+        (err, result)=>{
+            if(err) console.log(err);
+            callback(err, result);
+        }
+    );
+}
+function resetTotalAmountAfterWidthrawling(publisher, callback){
+    mongodb.collection("publisher").update(
+        {publisher: publisher},
+        {$set: {current_balance: 0}},
+        (err, result)=>{
+            if(err) console.log(err);
+            callback(err, result);
+        }
+    );
 }
 function register(username, password, callback){
     var token = generateToken();
@@ -32,7 +58,16 @@ function register(username, password, callback){
         return callback(err, token);
     })
 }
-
+function updateWithdrawalEmail(publisher, withdrawalEmail, callback){
+    mongodb.collection("publisher").update(
+        {publisher: publisher},
+        {$set: {withdrawal_email: withdrawalEmail}},
+        (err, result)=>{
+            if(err) console.log(err);
+            callback(err, result);
+        }
+    );
+}
 function save_message(email, message, callback) {
     mongodb.collection("message").insert({"email": email, "message": message}, (err, result)=>{
        return err?callback(false):callback(true);
@@ -68,7 +103,7 @@ function report(conditions, callback){
     if(JSON.stringify(aggregate[0].$match._id)==="{}") delete aggregate[0].$match._id;
     if(publisher) aggregate[0].$match.publisher = publisher;
     if(udid) aggregate[0].$match.udid = udid;
-    if(package_name) aggregate[0].$match.package_name = package_name;
+    if(package_name) aggregate[0].$match.package_name = {'$regex': package_name};
     aggregate[0].$match.time = {};
     if(from_date) aggregate[0].$match.time.$gte = from_date;
     if(to_date) aggregate[0].$match.time.$lte = to_date;
@@ -117,3 +152,7 @@ module.exports.action = action;
 module.exports.report = report;
 module.exports.get_publisher_by_token = get_publisher_by_token;
 module.exports.save_message = save_message;
+module.exports.increaseTotalAmount = increaseTotalAmount;
+module.exports.resetTotalAmountAfterWidthrawling = resetTotalAmountAfterWidthrawling;
+module.exports.updateWithdrawalEmail = updateWithdrawalEmail;
+module.exports.getCurrentBalance = getCurrentBalance;
