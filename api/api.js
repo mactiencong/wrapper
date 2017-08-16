@@ -23,26 +23,29 @@ var API= {
         return crypto.createHash('sha256').update("wrapper"+req_data.token+req_data.package_name+req_data.udid).digest("hex");
     },
     caching_get: (req_data, callback)=> {
-        console.log("get cache");
         caching.get(API.caching_get_key(req_data), (err, value)=>{
             return err || value===undefined? callback(false):callback(value);
         })
     },
     caching_set: (req_data, data, ttl, callback)=> {
-        console.log("set cache");
         caching.set(API.caching_get_key(req_data), data, ttl, (err, success)=>{
             return !err && success? callback(true):callback(false);
         })
     },
     action: (req, res) => {
+        var action_data = API.normal_action_data(req);
+        console.log("API : .../action/");
+        console.log("API params: ");
+        console.log(action_data);
         API.caching_get(req.body, (value)=>{
             if(value!==false) return API.api_response(res, false, "REQUEST_REJECTED", null);
             if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
-            var action_data = API.normal_action_data(req);
-            fs.readFile("./dl_url", (err, data)=>{
-                if(err) return API.api_response(res, false, "ERROR_READ_DL_URL_FILE", null);
+            fs.readFile(__dirname + "/dl_url", (err, data)=>{
+                if(err) {
+                    console.log(err);
+                    return API.api_response(res, false, "ERROR_READ_DL_URL_FILE", null);
+                }
                 action_data.dl_url = data;
-                console.log(action_data);
                 API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
                 API.get_publisher_by_token(action_data.token)
                 .then(publisher=>{return API.log_history(res, publisher, action_data)}, err=>{ return API.api_response(res, false, err, null)})
@@ -51,11 +54,14 @@ var API= {
     },
     log_history: (res, publisher, action_data)=> {
         action_data.publisher = publisher;
-        console.log("publisher", publisher);
         wrapper_db.action(action_data, (err, result)=> {
             wrapper_db.increaseTotalAmount(publisher, (e, rs)=>{
-                delete action_data._id, action_data.publisher, action_data.revenue, action_data.udid; // dont response these
-                return e ? API.api_response(res, false, "DB_ERROR", null) : API.api_response(res, true, null, action_data);
+                delete action_data._id; 
+                delete action_data.publisher;
+                delete action_data.revenue;
+                delete action_data.udid;
+                delete action_data.dl_url; // dont response these
+                return e ? API.api_response(res, false, "DB_ERROR", action_data) : API.api_response(res, true, null, action_data);
             })
         })
     },
@@ -99,13 +105,11 @@ var API= {
         })
     },
     publisher_login: (req, res, callback)=>{
-        console.log(req.body);
         var username = req.body.username || null;
         var password = req.body.password || null;
         wrapper_db.login(username, password, (err, publisher)=>{
             if(err || !publisher) return callback(false);
             req.session.publisher = publisher;
-            console.log("saved session", req.session.publisher);
             return req.session.save(err=> {
                 if(err) {
                     req.session.publisher = null;
@@ -138,7 +142,6 @@ var API= {
         return req.session.publisher;
     },
     check_login : (req, res, callback) => {
-        console.log("session check login:", req.session.publisher);
         if(req.session.publisher) return callback(req.session.publisher);
         return callback(false);
     },
@@ -155,7 +158,10 @@ var API= {
         return server_signature===req_signature;
     },
     api_response: (res, is_success, error=null, data=null) => {
-        console.log("API response");
+        console.log("API response:");
+        console.log("Error: " + error);
+        console.log("Data:");
+        console.log(data);
         return res.send({"status":(is_success?1:0), "error":(error?error:""), "data":(data?data:null)});
     },
     get_client_info: (req)=>{
@@ -169,10 +175,7 @@ var API= {
     },
     report: (req, res, callback)=>{
          var conditions = req.query;
-         console.log(req.query);
          conditions = API.normal_conditions_report(req, conditions);
-         console.log("condition after normaling: ", conditions);
-         console.log(req.query);
          wrapper_db.report(conditions, result=> {
             return callback(result, API.report_paging(result.length, conditions.page));
         })

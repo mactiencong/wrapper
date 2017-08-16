@@ -111,8 +111,10 @@ function report(conditions, callback){
     if(JSON.stringify(aggregate[0].$match.time)==="{}") delete aggregate[0].$match.time;
     console.log("report aggregate: ", aggregate);
     mongodb.collection("history").aggregate(aggregate).toArray((err, result)=>{
-        if(err) return callback(false);
-        console.log(result);
+        if(err) {
+            console.log(err);
+            return callback(false);
+        }
         return callback(result);
     });
 }

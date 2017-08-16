@@ -67,37 +67,28 @@ var SERVER_PORT = CONFIG.server.port;
     })
     app.get("/report",(req, res)=>{
         api.report(req, res, (result)=>{
-            console.log("report result: ", result);
             return res.send("result");
         });
     })
     app.get("/publisher/index", (req, res)=>{
-        console.log("/publisher/index");
         api.check_login(req, res, (publisher)=>{
-            console.log("session in /publisher/index", publisher);
             if(!publisher) return res.redirect("/publisher/login");
             api.report(req, res, (result, paging)=>{
                 return res.render("index", {"publisher": publisher, "report": result, "filter": req.query, "paging": paging});
             })
         });
-        console.log("/publisher/index checking session");
     })
     app.get("/publisher/login", (req, res)=>{
-        console.log("/publisher/login");
         api.check_login(req, res, (publisher)=>{
-            console.log("session in /publisher/login", req.session.publisher);
             if(publisher) return res.redirect("/publisher/index");
             else return res.render("login", {"code": req.query.code});
         });
-        console.log("/publisher/login checking session");
     })
     app.post("/publisher/login", (req, res)=>{
         api.publisher_login(req, res, (publisher)=>{
-            console.log("session after login", publisher);
             if(publisher) return res.redirect("/publisher/index");
             else return res.redirect("/publisher/login?code=1004");
         });
-        console.log("post /publisher/login login ...");
     })
     app.get("/publisher/logout", (req, res)=>{
         api.publisher_logout(req, res, ()=>{
