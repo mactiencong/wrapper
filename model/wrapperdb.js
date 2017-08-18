@@ -98,7 +98,8 @@ function report(conditions, callback){
             }
         },
         {$limit: limit},
-        {$skip: limit * (page-1)}
+        {$skip: limit * (page-1)},
+        {$sort:{_id:-1}}
     ];
     if(JSON.stringify(aggregate[0].$match._id)==="{}") delete aggregate[0].$match._id;
     if(publisher) aggregate[0].$match.publisher = publisher;

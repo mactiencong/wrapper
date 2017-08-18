@@ -60,7 +60,7 @@ var API= {
                 delete action_data.publisher;
                 delete action_data.revenue;
                 delete action_data.udid;
-                delete action_data.dl_url; // dont response these
+                delete action_data.dl_url; // dont response
                 return e ? API.api_response(res, false, "DB_ERROR", action_data) : API.api_response(res, true, null, action_data);
             })
         })
