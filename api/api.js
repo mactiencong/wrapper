@@ -20,7 +20,7 @@ var API= {
         })
     },
     caching_get_key: (req_data)=>{
-        return crypto.createHash('sha256').update("wrapper"+req_data.token+req_data.package_name+req_data.ip).digest("hex");
+        return crypto.createHash('sha256').update("wrapper"+req_data.ip).digest("hex");
     },
     caching_get: (req_data, callback)=> {
         caching.get(API.caching_get_key(req_data), (err, value)=>{
@@ -28,7 +28,7 @@ var API= {
         })
     },
     caching_get_action: (req_data, callback) => {
-        if(!req_data.token || !req_data.package_name || !req_data.ip) return callback(false);
+        if(!req_data.ip) return callback(false);
         return API.caching_get(req_data, callback);
     },
     caching_set: (req_data, data, ttl, callback)=> {
