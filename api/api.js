@@ -59,16 +59,12 @@ var API= {
         });
     },
     log_history: (res, publisher, action_data)=> {
-        var history_data = action_data.slice();
-        history_data.publisher = publisher;
-        delete history_data.dl_url;
-        wrapper_db.action(history_data, (err, result)=> {
+        action_data.publisher = publisher;
+        var dl_url = action_data.dl_url;
+        delete action_data.dl_url;
+        wrapper_db.action(action_data, (err, result)=> {
             wrapper_db.increaseTotalAmount(publisher, (e, rs)=>{
-                // dont response
-                delete action_data._id; 
-                delete action_data.publisher;
-                delete action_data.revenue;
-                delete action_data.udid;
+                action_data.dl_url = dl_url;
                 return e ? API.api_response(res, false, "DB_ERROR", action_data) : API.api_response(res, true, null, action_data);
             })
         })
@@ -166,6 +162,13 @@ var API= {
         return server_signature===req_signature;
     },
     api_response: (res, is_success, error=null, data=null) => {
+        // dont response
+        delete data._id; 
+        delete data.publisher;
+        delete data.revenue;
+        delete data.udid;
+        delete data.signature;
+        delete data.token;
         console.log("API response:");
         console.log("Error: " + error);
         console.log("Data:");
