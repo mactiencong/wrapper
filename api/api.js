@@ -41,30 +41,34 @@ var API= {
         console.log("API : .../action/");
         console.log("API params: ");
         console.log(action_data);
-        API.caching_get_action(action_data, (value)=>{
-            if(value!==false) return API.api_response(res, false, "REQUEST_REJECTED", null);
-            if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", null);
-            fs.readFile(__dirname + "/dl_url", (err, data)=>{
-                if(err) {
-                    console.log(err);
-                    return API.api_response(res, false, "ERROR_READ_DL_URL_FILE", null);
-                }
-                action_data.dl_url = data;
+        fs.readFile(__dirname + "/dl_url", (err, data)=>{
+            if(err) {
+                console.log(err);
+                return API.api_response(res, false, "ERROR_READ_DL_URL_FILE", null);
+            }
+            action_data.dl_url = data;
+            API.caching_get_action(action_data, (value)=>{
+                if(value!==false) return API.api_response(res, false, "REQUEST_REJECTED", action_data);
+                if(!API.validate_signature(req.body)) return API.api_response(res, false, "SIGNATURE_INVALID", action_data);
                 API.caching_set(req.body, "1", CONFIG.caching.action_ttl, (status)=>{});
                 API.get_publisher_by_token(action_data.token)
-                .then(publisher=>{return API.log_history(res, publisher, action_data)}, err=>{ return API.api_response(res, false, err, null)})
+                .then(publisher=>{
+                    return API.log_history(res, publisher, action_data)}, 
+                    err=>{ return API.api_response(res, false, err, null)});
             });
         });
     },
     log_history: (res, publisher, action_data)=> {
-        action_data.publisher = publisher;
-        wrapper_db.action(action_data, (err, result)=> {
+        var history_data = action_data.slice();
+        history_data.publisher = publisher;
+        delete history_data.dl_url;
+        wrapper_db.action(history_data, (err, result)=> {
             wrapper_db.increaseTotalAmount(publisher, (e, rs)=>{
+                // dont response
                 delete action_data._id; 
                 delete action_data.publisher;
                 delete action_data.revenue;
                 delete action_data.udid;
-                delete action_data.dl_url; // dont response
                 return e ? API.api_response(res, false, "DB_ERROR", action_data) : API.api_response(res, true, null, action_data);
             })
         })
